@@ -1,10 +1,9 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
-import { Layout } from '../../components/layout/Layout';
-import { defaultVaults } from '../../config/defaults';
-import { ClientVaultData } from '../../components/modules/vaults/ClientVaultData';
+import { Layout } from '@/components/layout/Layout';
+import { defaultVaults } from '@/config/defaults';
+import ClientVaultData from '@/components/modules/vaults/ClientVaultData';
+import { Suspense } from 'react';
 
 // Interface for vault data
 interface VaultData {
@@ -15,6 +14,9 @@ interface VaultData {
   tvl: string;
   token: string;
 }
+
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
 
 export default function BeraPage() {
   // Filter vaults to only show BERA vaults
@@ -73,7 +75,14 @@ export default function BeraPage() {
             </div>
             
             <div className="md:w-3/4">
-              <ClientVaultData initialVaults={beraVaults} />
+              <Suspense fallback={
+                <div className="animate-pulse space-y-4">
+                  <div className="h-48 bg-gray-800 rounded-xl"></div>
+                  <div className="h-48 bg-gray-800 rounded-xl"></div>
+                </div>
+              }>
+                <ClientVaultData initialVaults={beraVaults} />
+              </Suspense>
             </div>
           </div>
           

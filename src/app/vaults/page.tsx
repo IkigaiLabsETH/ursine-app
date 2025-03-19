@@ -1,9 +1,9 @@
 "use client";
 
 import { Layout } from '../../components/layout/Layout';
-import { VaultCard } from '../../components/modules/vaults/VaultCard';
 import { defaultVaults } from '../../config/defaults';
-import { ClientVaultData } from '@/components/modules/vaults/ClientVaultData';
+import ClientVaultData from '@/components/modules/vaults/ClientVaultData';
+import { Suspense } from 'react';
 
 // Interface for vault data
 interface VaultData {
@@ -14,6 +14,9 @@ interface VaultData {
   tvl: string;
   token: string;
 }
+
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
 
 export default function VaultsPage() {
   return (
@@ -69,7 +72,14 @@ export default function VaultsPage() {
             </div>
             
             <div className="md:w-3/4">
-              <ClientVaultData initialVaults={defaultVaults} />
+              <Suspense fallback={
+                <div className="animate-pulse space-y-4">
+                  <div className="h-48 bg-gray-800 rounded-xl"></div>
+                  <div className="h-48 bg-gray-800 rounded-xl"></div>
+                </div>
+              }>
+                <ClientVaultData initialVaults={defaultVaults} />
+              </Suspense>
             </div>
           </div>
           

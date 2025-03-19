@@ -3,6 +3,7 @@
 import { Layout } from '@/components/layout/Layout';
 import { defaultStrategies } from '@/config/defaults';
 import { ClientStrategyData } from '@/components/modules/strategies/ClientStrategyData';
+import { Suspense } from 'react';
 
 // Interface for strategy data
 interface StrategyData {
@@ -13,6 +14,9 @@ interface StrategyData {
   protocols: string[];
   vault: string;
 }
+
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
 
 export default function StrategiesPage() {
   return (
@@ -68,7 +72,14 @@ export default function StrategiesPage() {
             </div>
             
             <div className="md:w-3/4">
-              <ClientStrategyData initialStrategies={defaultStrategies} />
+              <Suspense fallback={
+                <div className="animate-pulse space-y-4">
+                  <div className="h-48 bg-gray-800 rounded-xl"></div>
+                  <div className="h-48 bg-gray-800 rounded-xl"></div>
+                </div>
+              }>
+                <ClientStrategyData initialStrategies={defaultStrategies} />
+              </Suspense>
             </div>
           </div>
           
