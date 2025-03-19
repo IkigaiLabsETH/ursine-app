@@ -1,0 +1,11 @@
+# Cursor ignore file
+**/.cursor/**
+**/.cursor/extensions/**
+**/typeshed-fallback/**
+**/.cursor/extensions/anysphere.pyright*/**
+**/.bun/**
+**/.bun/install/cache/**
+~/.cursor/
+~/.cursor/extensions/
+~/.bun/
+~/.bun/install/cache/ 
