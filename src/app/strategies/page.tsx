@@ -1,10 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { Layout } from '../../components/layout/Layout';
-import { defaultStrategies } from '../../config/defaults';
-import { ClientStrategyData } from '../../components/modules/strategies/ClientStrategyData';
+import { Layout } from '@/components/layout/Layout';
+import { defaultStrategies } from '@/config/defaults';
+import { ClientStrategyData } from '@/components/modules/strategies/ClientStrategyData';
 
 // Interface for strategy data
 interface StrategyData {

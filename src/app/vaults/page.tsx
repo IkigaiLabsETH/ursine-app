@@ -1,7 +1,9 @@
+"use client";
+
 import { Layout } from '../../components/layout/Layout';
 import { VaultCard } from '../../components/modules/vaults/VaultCard';
 import { defaultVaults } from '../../config/defaults';
-import { ClientVaultData } from '../../components/modules/vaults/ClientVaultData';
+import { ClientVaultData } from '@/components/modules/vaults/ClientVaultData';
 
 // Interface for vault data
 interface VaultData {
