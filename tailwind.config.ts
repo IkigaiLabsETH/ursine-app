@@ -8,6 +8,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        berry: "#8A2BE2", // Purple
+        jelly: "#FF1493", // Pink
+        kiwi: "#32CD32",  // Green
+        "dark-primary": "#121212",
+        "dark-secondary": "#1E1E1E"
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
