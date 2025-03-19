@@ -2,11 +2,10 @@
 
 import React from "react";
 import { ThirdwebProvider } from "thirdweb/react";
-import { client } from "./client";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThirdwebProvider client={client}>
+    <ThirdwebProvider>
       {children}
     </ThirdwebProvider>
   );
