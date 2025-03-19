@@ -41,3 +41,5 @@ next-env.d.ts
 .cursor/extensions/
 **/.cursor/
 **/.cursor/extensions/
+**/.cursor/extensions/anysphere.pyright*
+**/typeshed-fallback/stdlib/lib2to3/fixes/
