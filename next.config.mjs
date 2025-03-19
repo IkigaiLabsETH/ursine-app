@@ -41,6 +41,13 @@ const nextConfig = {
   transpilePackages: [
     'thirdweb'
   ],
+  // Disable server-side rendering for static export
+  unstable_runtimeJS: false,
+  // Disable static optimization for pages that use client components
+  experimental: {
+    isrMemoryCacheSize: 0,
+    serverActions: false,
+  },
 };
 
 export default nextConfig;
