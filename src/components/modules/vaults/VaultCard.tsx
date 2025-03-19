@@ -3,17 +3,13 @@
 import { useState } from "react";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
 import { GradientButton } from "../../common/Button";
+import { type VaultData } from "./ClientVaultData";
 
 interface VaultCardProps {
-  vaultAddress: string;
-  name: string;
-  description: string;
-  apy: string;
-  tvl: string;
-  token: string;
+  vault: VaultData;
 }
 
-export function VaultCard({ vaultAddress, name, description, apy, tvl, token }: VaultCardProps) {
+export function VaultCard({ vault }: VaultCardProps) {
   const [amount, setAmount] = useState("");
   const [isDepositing, setIsDepositing] = useState(false);
   const { mutate: sendTx } = useSendTransaction();
@@ -35,11 +31,11 @@ export function VaultCard({ vaultAddress, name, description, apy, tvl, token }: 
       
       // First approve tokens for deposit
       const approvalTx = {
-        to: token,
+        to: vault.token,
         value: "0",
         data: {
           function: "approve",
-          args: [vaultAddress, amount]
+          args: [vault.vaultAddress, amount]
         }
       };
       
@@ -48,7 +44,7 @@ export function VaultCard({ vaultAddress, name, description, apy, tvl, token }: 
       
       // Then deposit tokens
       const depositTx = {
-        to: vaultAddress,
+        to: vault.vaultAddress,
         value: "0",
         data: {
           function: "deposit",
@@ -69,16 +65,16 @@ export function VaultCard({ vaultAddress, name, description, apy, tvl, token }: 
   return (
     <div className="bg-dark-secondary rounded-xl p-6 border border-gray-800">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">{name}</h2>
+        <h2 className="text-xl font-bold">{vault.name}</h2>
         <div className="bg-berry/20 text-berry px-3 py-1 rounded-full text-sm font-medium">
-          {apy} APY
+          {vault.apy} APY
         </div>
       </div>
       
-      <p className="text-gray-400 mb-4">{description}</p>
+      <p className="text-gray-400 mb-4">{vault.description}</p>
       
       <div className="flex justify-between text-sm text-gray-400 mb-6">
-        <span>TVL: {tvl}</span>
+        <span>TVL: {vault.tvl}</span>
       </div>
       
       <div className="mb-4">

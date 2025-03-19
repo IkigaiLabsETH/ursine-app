@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useReadContract } from "thirdweb/react";
+import { getContract } from "thirdweb";
 import { VaultCard } from './VaultCard';
+import { berachain, client } from '../../../app/client';
+import { type AbiFunction } from "abitype";
 
-interface VaultData {
+export interface VaultData {
   vaultAddress: string;
   name: string;
   description: string;
@@ -13,78 +16,80 @@ interface VaultData {
   token: string;
 }
 
-interface ClientVaultDataProps {
+export interface ClientVaultDataProps {
   initialVaults: VaultData[];
 }
 
-export function ClientVaultData({ initialVaults }: ClientVaultDataProps) {
-  const [vaults, setVaults] = useState<VaultData[]>(initialVaults);
-  const [isLoading, setIsLoading] = useState(false);
+const vaultFactoryAbi = [{
+  type: "function",
+  name: "getAllVaults",
+  inputs: [],
+  outputs: [{ type: "address[]" }],
+  stateMutability: "view",
+} as const];
+
+export default function ClientVaultData({ initialVaults }: ClientVaultDataProps) {
+  const factoryAddress = process.env.NEXT_PUBLIC_VAULT_FACTORY_ADDRESS as `0x${string}`;
+  const [vaultsData, setVaultsData] = useState<VaultData[]>(initialVaults);
   const [error, setError] = useState<string | null>(null);
 
-  // Use optional chaining for environment variable access
-  const factoryAddress = typeof window !== 'undefined' 
-    ? window?.ENV?.NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS || ""
-    : "";
+  const contract = getContract({
+    address: factoryAddress,
+    chain: berachain,
+    client,
+  });
 
-  // Read vault addresses from factory with proper typing
-  const { data: vaultAddresses, isLoading: isLoadingVaults, error: contractError } = useReadContract({
-    contract: factoryAddress || undefined,
-    method: "getAllVaults",
-    params: []
-  } as any); // Type assertion needed for thirdweb contract call
+  const { data: vaultAddresses, isLoading } = useReadContract({
+    contract,
+    method: "function getAllVaults() view returns (address[])",
+  });
 
   useEffect(() => {
-    // Reset error state
-    setError(null);
-
     const fetchVaultData = async () => {
       if (!vaultAddresses || !Array.isArray(vaultAddresses) || vaultAddresses.length === 0) {
         // If no vaults are deployed yet, use initial data
-        setVaults(initialVaults);
-        setIsLoading(false);
+        setVaultsData(initialVaults);
         return;
       }
 
       try {
-        setIsLoading(true);
-        // For now, use initial data
-        // In a real implementation, we would fetch data for each vault
-        setVaults(initialVaults);
+        // Here you would fetch data for each vault address
+        // For now, we'll use the initial data
+        setVaultsData(initialVaults);
       } catch (error) {
         console.error("Error fetching vault data:", error);
         setError("Failed to fetch vault data. Using fallback data.");
-        // Fallback to initial data
-        setVaults(initialVaults);
-      } finally {
-        setIsLoading(false);
+        setVaultsData(initialVaults);
       }
     };
 
-    if (!isLoadingVaults) {
+    if (!isLoading) {
       fetchVaultData();
     }
-  }, [vaultAddresses, isLoadingVaults, initialVaults]);
+  }, [vaultAddresses, isLoading, initialVaults]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-berry"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500 text-center py-4">
+        {error}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {vaults.map((vault) => (
+      {vaultsData.map((vault) => (
         <VaultCard
           key={vault.vaultAddress}
-          vaultAddress={vault.vaultAddress}
-          name={vault.name}
-          description={vault.description}
-          apy={vault.apy}
-          tvl={vault.tvl}
-          token={vault.token}
+          vault={vault}
         />
       ))}
     </div>
