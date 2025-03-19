@@ -37,5 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 # cursor extensions
-~/.cursor/
-~/.cursor/extensions/
+.cursor/
+.cursor/extensions/
+**/.cursor/
+**/.cursor/extensions/
