@@ -2,13 +2,23 @@
 
 import { useState } from "react";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
-import { getContract, prepareContractCall } from "thirdweb";
+import { getContract } from "thirdweb";
+import { approve } from "thirdweb/extensions/erc20";
 import { type VaultData } from "./ClientVaultData";
 import { berachain, client } from "../../../app/client";
+import { encodeFunctionData } from "viem";
 
 interface VaultCardProps {
   vault: VaultData;
 }
+
+const vaultAbi = [{
+  type: "function",
+  name: "deposit",
+  inputs: [{ type: "uint256", name: "amount" }],
+  outputs: [{ type: "bool" }],
+  stateMutability: "nonpayable"
+}] as const;
 
 export function VaultCard({ vault }: VaultCardProps) {
   const [amount, setAmount] = useState("");
@@ -33,27 +43,29 @@ export function VaultCard({ vault }: VaultCardProps) {
         client,
       });
 
-      // Get vault contract
-      const vaultContract = getContract({
-        address: vault.vaultAddress as `0x${string}`,
-        chain: berachain,
-        client,
-      });
-
       // First approve tokens for deposit
-      const approvalTx = await prepareContractCall({
-        __contract: tokenContract,
-        method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [vault.vaultAddress, amountBigInt],
+      const approvalTx = approve({
+        contract: tokenContract,
+        spender: vault.vaultAddress,
+        amount: amountBigInt.toString(),
       });
       await sendTx(approvalTx);
 
-      // Then deposit tokens
-      const depositTx = await prepareContractCall({
-        __contract: vaultContract,
-        method: "function deposit(uint256 amount) returns (bool)",
-        params: [amountBigInt],
+      // Prepare deposit transaction
+      const depositData = encodeFunctionData({
+        abi: vaultAbi,
+        functionName: "deposit",
+        args: [amountBigInt],
       });
+
+      // Then deposit tokens
+      const depositTx = {
+        chain: berachain,
+        client,
+        to: vault.vaultAddress as `0x${string}`,
+        data: depositData,
+        value: 0n,
+      };
       await sendTx(depositTx);
 
       setAmount("");
