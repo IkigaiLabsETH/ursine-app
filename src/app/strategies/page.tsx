@@ -2,19 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from 'react';
 import { Layout } from '../../components/layout/Layout';
-import { StrategyCard } from '../../components/modules/strategies/StrategyCard';
-import { useReadContract } from "thirdweb/react";
-
-// Declare window environment variables
-declare global {
-  interface Window {
-    ENV?: {
-      NEXT_PUBLIC_IKIGAI_STRATEGY_FACTORY_ADDRESS?: string;
-    };
-  }
-}
+import { defaultStrategies } from '../../config/defaults';
+import { ClientStrategyData } from '../../components/modules/strategies/ClientStrategyData';
 
 // Interface for strategy data
 interface StrategyData {
@@ -26,105 +16,7 @@ interface StrategyData {
   vault: string;
 }
 
-// Default strategy data for static rendering and fallback
-const defaultStrategies: StrategyData[] = [
-  {
-    name: "USDC Lending Optimizer",
-    description: "Automatically allocates USDC across lending protocols to maximize yield.",
-    apy: "8.2%",
-    risk: "Low" as const,
-    protocols: ["Aave", "Compound", "Euler"],
-    vault: "USDC Vault",
-  },
-  {
-    name: "ETH-BERA LP Compounder",
-    description: "Compounds rewards from ETH-BERA liquidity provision on DEXes.",
-    apy: "12.5%",
-    risk: "Medium" as const,
-    protocols: ["Uniswap", "Balancer", "Curve"],
-    vault: "ETH Vault",
-  },
-  {
-    name: "BERA Staking Maximizer",
-    description: "Optimizes BERA staking rewards across multiple validators.",
-    apy: "11.3%",
-    risk: "Low" as const,
-    protocols: ["Lido", "Rocket Pool", "Frax"],
-    vault: "BERA Vault",
-  },
-  {
-    name: "YFI Delta Neutral",
-    description: "Delta neutral strategy using YFI to generate yield while hedging price exposure.",
-    apy: "15.7%",
-    risk: "High" as const,
-    protocols: ["GMX", "Perpetual Protocol", "dYdX"],
-    vault: "YFI Vault",
-  },
-  {
-    name: "Stablecoin Curve Strategy",
-    description: "Provides liquidity to Curve stablecoin pools and autocompounds CRV rewards.",
-    apy: "9.8%",
-    risk: "Medium" as const,
-    protocols: ["Curve", "Convex", "Stake DAO"],
-    vault: "USDC Vault",
-  },
-  {
-    name: "ETH LST Yield Aggregator",
-    description: "Aggregates yield from liquid staking tokens while maintaining ETH exposure.",
-    apy: "7.2%",
-    risk: "Low" as const,
-    protocols: ["Lido", "Frax", "Swell"],
-    vault: "ETH Vault",
-  },
-];
-
 export default function StrategiesPage() {
-  const [strategies, setStrategies] = useState<StrategyData[]>(defaultStrategies);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Use optional chaining for environment variable access
-  const strategyFactoryAddress = typeof window !== 'undefined' 
-    ? window?.ENV?.NEXT_PUBLIC_IKIGAI_STRATEGY_FACTORY_ADDRESS || ""
-    : "";
-
-  // Read strategy addresses from factory with proper typing
-  const { data: strategyAddresses, isLoading: isLoadingStrategies, error: contractError } = useReadContract({
-    contract: strategyFactoryAddress || undefined,
-    method: "getAllStrategies",
-    params: []
-  } as any); // Type assertion needed for thirdweb contract call
-
-  useEffect(() => {
-    // Reset error state
-    setError(null);
-
-    const fetchStrategyData = async () => {
-      if (!strategyAddresses || !Array.isArray(strategyAddresses) || strategyAddresses.length === 0) {
-        // If no strategies are deployed yet, use example data
-        setStrategies(defaultStrategies);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // For now, use example data
-        setStrategies(defaultStrategies);
-      } catch (error) {
-        console.error("Error fetching strategy data:", error);
-        setError("Failed to fetch strategy data. Using fallback data.");
-        // Fallback to example data
-        setStrategies(defaultStrategies);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (!isLoadingStrategies) {
-      fetchStrategyData();
-    }
-  }, [strategyAddresses, isLoadingStrategies]);
-
   return (
     <Layout>
       <div className="py-12 px-4">
@@ -178,25 +70,7 @@ export default function StrategiesPage() {
             </div>
             
             <div className="md:w-3/4">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-berry"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {strategies.map((strategy, index) => (
-                    <StrategyCard
-                      key={index}
-                      name={strategy.name}
-                      description={strategy.description}
-                      apy={strategy.apy}
-                      risk={strategy.risk}
-                      protocols={strategy.protocols}
-                      vault={strategy.vault}
-                    />
-                  ))}
-                </div>
-              )}
+              <ClientStrategyData initialStrategies={defaultStrategies} />
             </div>
           </div>
           

@@ -4,6 +4,16 @@ import "./globals.css";
 import { Providers } from "./providers";
 import Script from "next/script";
 
+// Declare window environment variables
+declare global {
+  interface Window {
+    ENV?: {
+      NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS?: string;
+      NEXT_PUBLIC_IKIGAI_STRATEGY_FACTORY_ADDRESS?: string;
+    };
+  }
+}
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {

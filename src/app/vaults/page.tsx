@@ -1,18 +1,7 @@
-"use client";
-
-import { useEffect, useState } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { VaultCard } from '../../components/modules/vaults/VaultCard';
-import { useReadContract } from "thirdweb/react";
-
-// Declare window environment variables
-declare global {
-  interface Window {
-    ENV?: {
-      NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS?: string;
-    };
-  }
-}
+import { defaultVaults } from '../../config/defaults';
+import { ClientVaultData } from '../../components/modules/vaults/ClientVaultData';
 
 // Interface for vault data
 interface VaultData {
@@ -24,91 +13,7 @@ interface VaultData {
   token: string;
 }
 
-// Default vault data for static rendering and fallback
-const defaultVaults: VaultData[] = [
-  {
-    vaultAddress: "0x1234567890123456789012345678901234567890",
-    name: "USDC Vault",
-    description: "Optimize yield on your USDC with our automated strategies.",
-    apy: "8.2%",
-    tvl: "$4.2M",
-    token: "0x1234567890123456789012345678901234567891",
-  },
-  {
-    vaultAddress: "0x1234567890123456789012345678901234567892",
-    name: "ETH Vault",
-    description: "Earn yield on your ETH while maintaining liquidity.",
-    apy: "5.7%",
-    tvl: "$12.8M",
-    token: "0x1234567890123456789012345678901234567893",
-  },
-  {
-    vaultAddress: "0x1234567890123456789012345678901234567894",
-    name: "BERA Vault",
-    description: "Maximize returns on your BERA with our optimized strategies.",
-    apy: "11.3%",
-    tvl: "$2.1M",
-    token: "0x1234567890123456789012345678901234567895",
-  },
-  {
-    vaultAddress: "0x1234567890123456789012345678901234567896",
-    name: "YFI Vault",
-    description: "Stake YFI to earn protocol fees and governance rights.",
-    apy: "9.5%",
-    tvl: "$3.7M",
-    token: "0x1234567890123456789012345678901234567897",
-  },
-];
-
 export default function VaultsPage() {
-  const [vaults, setVaults] = useState<VaultData[]>(defaultVaults);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Use optional chaining for environment variable access
-  const factoryAddress = typeof window !== 'undefined' 
-    ? window?.ENV?.NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS || ""
-    : "";
-
-  // Add error state for better error handling
-  const [error, setError] = useState<string | null>(null);
-
-  // Read vault addresses from factory with proper typing
-  const { data: vaultAddresses, isLoading: isLoadingVaults, error: contractError } = useReadContract({
-    contract: factoryAddress || undefined,
-    method: "getAllVaults",
-    params: []
-  } as any); // Type assertion needed for thirdweb contract call
-
-  useEffect(() => {
-    // Reset error state
-    setError(null);
-
-    const fetchVaultData = async () => {
-      if (!vaultAddresses || !Array.isArray(vaultAddresses) || vaultAddresses.length === 0) {
-        // If no vaults are deployed yet, use example data
-        setVaults(defaultVaults);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // For now, use example data
-        setVaults(defaultVaults);
-      } catch (error) {
-        console.error("Error fetching vault data:", error);
-        setError("Failed to fetch vault data. Using fallback data.");
-        // Fallback to example data
-        setVaults(defaultVaults);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (!isLoadingVaults) {
-      fetchVaultData();
-    }
-  }, [vaultAddresses, isLoadingVaults]);
-
   return (
     <Layout>
       <div className="py-12 px-4">
@@ -162,25 +67,7 @@ export default function VaultsPage() {
             </div>
             
             <div className="md:w-3/4">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-berry"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {vaults.map((vault) => (
-                    <VaultCard
-                      key={vault.vaultAddress}
-                      vaultAddress={vault.vaultAddress}
-                      name={vault.name}
-                      description={vault.description}
-                      apy={vault.apy}
-                      tvl={vault.tvl}
-                      token={vault.token}
-                    />
-                  ))}
-                </div>
-              )}
+              <ClientVaultData initialVaults={defaultVaults} />
             </div>
           </div>
           
