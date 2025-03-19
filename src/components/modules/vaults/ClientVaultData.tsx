@@ -5,7 +5,6 @@ import { useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { VaultCard } from './VaultCard';
 import { berachain, client } from '../../../app/client';
-import { type AbiFunction } from "abitype";
 
 export interface VaultData {
   vaultAddress: string;
@@ -19,14 +18,6 @@ export interface VaultData {
 export interface ClientVaultDataProps {
   initialVaults: VaultData[];
 }
-
-const vaultFactoryAbi = [{
-  type: "function",
-  name: "getAllVaults",
-  inputs: [],
-  outputs: [{ type: "address[]" }],
-  stateMutability: "view",
-} as const];
 
 export default function ClientVaultData({ initialVaults }: ClientVaultDataProps) {
   const factoryAddress = process.env.NEXT_PUBLIC_VAULT_FACTORY_ADDRESS as `0x${string}`;
@@ -53,7 +44,7 @@ export default function ClientVaultData({ initialVaults }: ClientVaultDataProps)
       }
 
       try {
-        // Here you would fetch data for each vault address
+        // Here you would fetch data for each vault address using useReadContract
         // For now, we'll use the initial data
         setVaultsData(initialVaults);
       } catch (error) {

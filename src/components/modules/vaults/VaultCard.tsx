@@ -3,22 +3,12 @@
 import { useState } from "react";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
 import { getContract, prepareContractCall } from "thirdweb";
-import { GradientButton } from "../../common/Button";
 import { type VaultData } from "./ClientVaultData";
 import { berachain, client } from "../../../app/client";
 
 interface VaultCardProps {
   vault: VaultData;
 }
-
-// Define contract extensions
-const approve = {
-  method: "function approve(address spender, uint256 amount) returns (bool)",
-} as const;
-
-const deposit = {
-  method: "function deposit(uint256 amount) returns (bool)",
-} as const;
 
 export function VaultCard({ vault }: VaultCardProps) {
   const [amount, setAmount] = useState("");
@@ -27,20 +17,13 @@ export function VaultCard({ vault }: VaultCardProps) {
   const account = useActiveAccount();
 
   const handleDeposit = async () => {
-    if (!account) {
-      console.error("Please connect your wallet");
-      return;
-    }
-
-    if (!amount || parseFloat(amount) <= 0) {
-      console.error("Please enter a valid amount");
+    if (!account || !amount) {
+      console.error("Please connect your wallet and enter an amount");
       return;
     }
 
     try {
       setIsDepositing(true);
-      
-      // Convert amount to BigInt (assuming 18 decimals)
       const amountBigInt = BigInt(Math.floor(parseFloat(amount) * 10**18));
       
       // Get token contract
@@ -56,29 +39,27 @@ export function VaultCard({ vault }: VaultCardProps) {
         chain: berachain,
         client,
       });
-      
+
       // First approve tokens for deposit
       const approvalTx = await prepareContractCall({
-        contract: tokenContract,
-        method: approve.method,
+        __contract: tokenContract,
+        method: "function approve(address spender, uint256 amount) returns (bool)",
         params: [vault.vaultAddress, amountBigInt],
       });
-      
       await sendTx(approvalTx);
-      console.log("Approval successful");
-      
+
       // Then deposit tokens
       const depositTx = await prepareContractCall({
-        contract: vaultContract,
-        method: deposit.method,
+        __contract: vaultContract,
+        method: "function deposit(uint256 amount) returns (bool)",
         params: [amountBigInt],
       });
-      
       await sendTx(depositTx);
-      console.log("Deposit successful");
+
       setAmount("");
+      console.log("Deposit successful");
     } catch (err) {
-      console.error("Failed to deposit", err);
+      console.error("Transaction failed", err);
     } finally {
       setIsDepositing(false);
     }
@@ -112,13 +93,13 @@ export function VaultCard({ vault }: VaultCardProps) {
         />
       </div>
       
-      <GradientButton 
-        onClick={handleDeposit} 
+      <button
+        onClick={handleDeposit}
         disabled={isDepositing || !amount || !account}
-        className="w-full py-3"
+        className="w-full py-3 bg-gradient-to-r from-berry to-berry-dark text-white font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isDepositing ? "Depositing..." : "Deposit"}
-      </GradientButton>
+        {isDepositing ? "Processing..." : "Approve & Deposit"}
+      </button>
     </div>
   );
 } 
