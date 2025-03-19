@@ -2,12 +2,23 @@
 
 import { useState } from "react";
 import { useActiveAccount, useSendTransaction } from "thirdweb/react";
+import { getContract, prepareContractCall } from "thirdweb";
 import { GradientButton } from "../../common/Button";
 import { type VaultData } from "./ClientVaultData";
+import { berachain, client } from "../../../app/client";
 
 interface VaultCardProps {
   vault: VaultData;
 }
+
+// Define contract extensions
+const approve = {
+  method: "function approve(address spender, uint256 amount) returns (bool)",
+} as const;
+
+const deposit = {
+  method: "function deposit(uint256 amount) returns (bool)",
+} as const;
 
 export function VaultCard({ vault }: VaultCardProps) {
   const [amount, setAmount] = useState("");
@@ -29,30 +40,41 @@ export function VaultCard({ vault }: VaultCardProps) {
     try {
       setIsDepositing(true);
       
-      // First approve tokens for deposit
-      const approvalTx = {
-        to: vault.token,
-        value: "0",
-        data: {
-          function: "approve",
-          args: [vault.vaultAddress, amount]
-        }
-      };
+      // Convert amount to BigInt (assuming 18 decimals)
+      const amountBigInt = BigInt(Math.floor(parseFloat(amount) * 10**18));
       
-      await sendTx(approvalTx as any);
+      // Get token contract
+      const tokenContract = getContract({
+        address: vault.token as `0x${string}`,
+        chain: berachain,
+        client,
+      });
+
+      // Get vault contract
+      const vaultContract = getContract({
+        address: vault.vaultAddress as `0x${string}`,
+        chain: berachain,
+        client,
+      });
+      
+      // First approve tokens for deposit
+      const approvalTx = await prepareContractCall({
+        contract: tokenContract,
+        method: approve.method,
+        params: [vault.vaultAddress, amountBigInt],
+      });
+      
+      await sendTx(approvalTx);
       console.log("Approval successful");
       
       // Then deposit tokens
-      const depositTx = {
-        to: vault.vaultAddress,
-        value: "0",
-        data: {
-          function: "deposit",
-          args: [amount]
-        }
-      };
+      const depositTx = await prepareContractCall({
+        contract: vaultContract,
+        method: deposit.method,
+        params: [amountBigInt],
+      });
       
-      await sendTx(depositTx as any);
+      await sendTx(depositTx);
       console.log("Deposit successful");
       setAmount("");
     } catch (err) {
