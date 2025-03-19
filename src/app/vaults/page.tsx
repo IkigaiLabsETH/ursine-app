@@ -1,11 +1,18 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { VaultCard } from '../../components/modules/vaults/VaultCard';
 import { useReadContract } from "thirdweb/react";
+
+// Declare window environment variables
+declare global {
+  interface Window {
+    ENV?: {
+      NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS?: string;
+    };
+  }
+}
 
 // Interface for vault data
 interface VaultData {
@@ -57,17 +64,25 @@ export default function VaultsPage() {
   const [vaults, setVaults] = useState<VaultData[]>(defaultVaults);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Factory address from environment variable
-  const factoryAddress = process.env.NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS || "";
+  // Use optional chaining for environment variable access
+  const factoryAddress = typeof window !== 'undefined' 
+    ? window?.ENV?.NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS || ""
+    : "";
 
-  // Read vault addresses from factory - using any type to avoid linter errors
-  const { data: vaultAddresses, isLoading: isLoadingVaults } = useReadContract({
-    contract: factoryAddress as any,
-    method: "getAllVaults" as any,
-    params: [] as any
-  });
+  // Add error state for better error handling
+  const [error, setError] = useState<string | null>(null);
+
+  // Read vault addresses from factory with proper typing
+  const { data: vaultAddresses, isLoading: isLoadingVaults, error: contractError } = useReadContract({
+    contract: factoryAddress || undefined,
+    method: "getAllVaults",
+    params: []
+  } as any); // Type assertion needed for thirdweb contract call
 
   useEffect(() => {
+    // Reset error state
+    setError(null);
+
     const fetchVaultData = async () => {
       if (!vaultAddresses || !Array.isArray(vaultAddresses) || vaultAddresses.length === 0) {
         // If no vaults are deployed yet, use example data
@@ -77,20 +92,11 @@ export default function VaultsPage() {
       }
 
       try {
-        // In a real implementation, we would use batch contract reads
-        // For now, we'll use the example data since we can't use useReadContracts in a non-React function
-        
-        // Example of how to fetch data for a single vault (would need to be done for each vault)
-        // const vaultData = await useReadContract({
-        //   contract: vaultAddresses[0],
-        //   method: "name",
-        //   params: []
-        // });
-        
         // For now, use example data
         setVaults(defaultVaults);
       } catch (error) {
         console.error("Error fetching vault data:", error);
+        setError("Failed to fetch vault data. Using fallback data.");
         // Fallback to example data
         setVaults(defaultVaults);
       } finally {

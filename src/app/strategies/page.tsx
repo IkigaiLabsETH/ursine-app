@@ -7,6 +7,15 @@ import { Layout } from '../../components/layout/Layout';
 import { StrategyCard } from '../../components/modules/strategies/StrategyCard';
 import { useReadContract } from "thirdweb/react";
 
+// Declare window environment variables
+declare global {
+  interface Window {
+    ENV?: {
+      NEXT_PUBLIC_IKIGAI_STRATEGY_FACTORY_ADDRESS?: string;
+    };
+  }
+}
+
 // Interface for strategy data
 interface StrategyData {
   name: string;
@@ -72,18 +81,24 @@ const defaultStrategies: StrategyData[] = [
 export default function StrategiesPage() {
   const [strategies, setStrategies] = useState<StrategyData[]>(defaultStrategies);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Strategy factory address from environment variable
-  const strategyFactoryAddress = process.env.NEXT_PUBLIC_IKIGAI_STRATEGY_FACTORY_ADDRESS || "";
+  // Use optional chaining for environment variable access
+  const strategyFactoryAddress = typeof window !== 'undefined' 
+    ? window?.ENV?.NEXT_PUBLIC_IKIGAI_STRATEGY_FACTORY_ADDRESS || ""
+    : "";
 
-  // Read strategy addresses from factory
-  const { data: strategyAddresses, isLoading: isLoadingStrategies } = useReadContract({
-    contract: strategyFactoryAddress as any,
-    method: "getAllStrategies" as any,
-    params: [] as any
-  });
+  // Read strategy addresses from factory with proper typing
+  const { data: strategyAddresses, isLoading: isLoadingStrategies, error: contractError } = useReadContract({
+    contract: strategyFactoryAddress || undefined,
+    method: "getAllStrategies",
+    params: []
+  } as any); // Type assertion needed for thirdweb contract call
 
   useEffect(() => {
+    // Reset error state
+    setError(null);
+
     const fetchStrategyData = async () => {
       if (!strategyAddresses || !Array.isArray(strategyAddresses) || strategyAddresses.length === 0) {
         // If no strategies are deployed yet, use example data
@@ -93,20 +108,11 @@ export default function StrategiesPage() {
       }
 
       try {
-        // In a real implementation, we would fetch data for each strategy
-        // For now, we'll use example data
-        
-        // Example of how to fetch data for a single strategy (would need to be done for each strategy)
-        // const strategyData = await useReadContract({
-        //   contract: strategyAddresses[0],
-        //   method: "estimatedAPY",
-        //   params: []
-        // });
-        
         // For now, use example data
         setStrategies(defaultStrategies);
       } catch (error) {
         console.error("Error fetching strategy data:", error);
+        setError("Failed to fetch strategy data. Using fallback data.");
         // Fallback to example data
         setStrategies(defaultStrategies);
       } finally {
