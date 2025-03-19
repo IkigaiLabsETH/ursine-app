@@ -1,0 +1,14 @@
+{
+  "files.exclude": {
+    "**/.cursor/**": true,
+    "**/.cursor/extensions/**": true,
+    "**/typeshed-fallback/**": true,
+    "**/.cursor/extensions/anysphere.pyright*/**": true
+  },
+  "search.exclude": {
+    "**/.cursor/**": true,
+    "**/.cursor/extensions/**": true,
+    "**/typeshed-fallback/**": true,
+    "**/.cursor/extensions/anysphere.pyright*/**": true
+  }
+} 
