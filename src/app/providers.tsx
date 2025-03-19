@@ -2,10 +2,15 @@
 
 import React from "react";
 import { ThirdwebProvider } from "thirdweb/react";
+import { berachain } from "./client";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThirdwebProvider>
+    <ThirdwebProvider
+      connectionManager={{
+        defineChains: () => [berachain],
+      }}
+    >
       {children}
     </ThirdwebProvider>
   );

@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useReadContract } from "thirdweb/react";
-import { getContract } from "thirdweb";
 import { VaultCard } from './VaultCard';
-import { berachain, client } from '../../../app/client';
+import { berachain } from '../../../app/client';
 
 export interface VaultData {
   vaultAddress: string;
@@ -20,19 +19,22 @@ export interface ClientVaultDataProps {
 }
 
 export default function ClientVaultData({ initialVaults }: ClientVaultDataProps) {
-  const factoryAddress = process.env.NEXT_PUBLIC_VAULT_FACTORY_ADDRESS as `0x${string}`;
+  // Get factory address from window.ENV to ensure client-side access
+  const factoryAddress = typeof window !== 'undefined' 
+    ? window?.ENV?.NEXT_PUBLIC_IKIGAI_VAULT_FACTORY_ADDRESS || ""
+    : "";
+
   const [vaultsData, setVaultsData] = useState<VaultData[]>(initialVaults);
   const [error, setError] = useState<string | null>(null);
 
-  const contract = getContract({
-    address: factoryAddress,
-    chain: berachain,
-    client,
-  });
-
   const { data: vaultAddresses, isLoading } = useReadContract({
-    contract,
-    method: "function getAllVaults() view returns (address[])",
+    contract: factoryAddress ? {
+      abi: ["function getAllVaults() view returns (address[])"],
+      address: factoryAddress as `0x${string}`,
+      chain: berachain
+    } : undefined,
+    functionName: "getAllVaults",
+    enabled: Boolean(factoryAddress)
   });
 
   useEffect(() => {
