@@ -3,12 +3,16 @@
     "**/.cursor/**": true,
     "**/.cursor/extensions/**": true,
     "**/typeshed-fallback/**": true,
-    "**/.cursor/extensions/anysphere.pyright*/**": true
+    "**/.cursor/extensions/anysphere.pyright*/**": true,
+    "**/.bun/**": true,
+    "**/.bun/install/cache/**": true
   },
   "search.exclude": {
     "**/.cursor/**": true,
     "**/.cursor/extensions/**": true,
     "**/typeshed-fallback/**": true,
-    "**/.cursor/extensions/anysphere.pyright*/**": true
+    "**/.cursor/extensions/anysphere.pyright*/**": true,
+    "**/.bun/**": true,
+    "**/.bun/install/cache/**": true
   }
 } 
